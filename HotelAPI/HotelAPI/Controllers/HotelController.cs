@@ -1,4 +1,6 @@
-﻿using HotelAPI.Models;
+﻿using HotelAPI.Data;
+using HotelAPI.Models;
+using HotelAPI.Models.Dto;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,14 +10,28 @@ namespace HotelAPI.Controllers
     [ApiController]
     public class HotelController : ControllerBase
     {
-        public IEnumerable<Hotel> GetHotels()
+        [HttpGet]
+        public ActionResult<IEnumerable<HotelDto>> GetHotels()
         {
-            return new List<Hotel>
+            return Ok(HotelStore.HotelList);
+        }
+
+        [HttpGet("id:int")]
+        public ActionResult<HotelDto> GetHotel(int id)
+        {
+            if(id <= 0)
             {
-                new Hotel{Id = 1, Name = "Hilton"},
-                new Hotel{Id = 2, Name = "Selene"},
-                new Hotel{Id = 3, Name = "Clock's"}
-            };
+                return BadRequest("Incorrect id Hotel");
+            }
+
+            var hotel = HotelStore.HotelList.FirstOrDefault(x => x.Id == id);
+
+            if(hotel == null)
+            {
+                return NotFound("Hotel not found");
+            }
+
+            return Ok(hotel);
         }
     }
 }
