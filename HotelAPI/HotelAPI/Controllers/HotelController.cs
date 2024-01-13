@@ -11,12 +11,16 @@ namespace HotelAPI.Controllers
     public class HotelController : ControllerBase
     {
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<HotelDto>> GetHotels()
         {
             return Ok(HotelStore.HotelList);
         }
 
         [HttpGet("id:int")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<HotelDto> GetHotel(int id)
         {
             if(id <= 0)
