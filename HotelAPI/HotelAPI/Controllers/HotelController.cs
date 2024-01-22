@@ -11,10 +11,17 @@ namespace HotelAPI.Controllers
     [ApiController]
     public class HotelController : ControllerBase
     {
+        private readonly ILogger<HotelController> _logger;
+        public HotelController(ILogger<HotelController> logger)
+        {
+            _logger = logger;
+        }
+
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<HotelDto>> GetHotels()
         {
+            _logger.LogInformation("The hotels were gotten succesfully");
             return Ok(HotelStore.HotelList);
         }
 
@@ -26,6 +33,7 @@ namespace HotelAPI.Controllers
         {
             if (id <= 0)
             {
+                _logger.LogError("Error: the id is lower or equal to zero");
                 return BadRequest("Incorrect id Hotel");
             }
 
