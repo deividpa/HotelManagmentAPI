@@ -8,5 +8,10 @@ namespace HotelAPI.Models.Dto
         [Required]
         [MaxLength(30)]
         public string Name { get; set; }
+        [Required]
+        public int Capacity {  get; set; }
+        [Required]
+        [MaxLength(30)]
+        public string City { get; set; }
     }
 }

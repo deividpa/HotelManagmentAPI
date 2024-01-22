@@ -17,7 +17,7 @@ namespace HotelAPI.Controllers
             return Ok(HotelStore.HotelList);
         }
 
-        [HttpGet("id:int", Name = "GetHotel")]
+        [HttpGet("{id:int}", Name = "GetHotel")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -77,6 +77,32 @@ namespace HotelAPI.Controllers
 
             return CreatedAtRoute("GetHotel", new {id = hotelDto.Id}, hotelDto);
         }
+
+        [HttpPut("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UpdateHotel(int id, [FromBody] HotelDto hotelDto)
+        {
+            if (hotelDto == null || id != hotelDto.Id)
+            {
+                return BadRequest();
+            }
+
+            var hotel = HotelStore.HotelList.FirstOrDefault(h => h.Id == id);
+
+            if (hotel == null)
+            {
+                return NotFound();
+            }
+
+            hotel.Name = hotelDto.Name;
+            hotel.Capacity = hotelDto.Capacity;
+            hotel.City = hotelDto.City;
+
+            return NoContent();
+        }
+
+
 
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
