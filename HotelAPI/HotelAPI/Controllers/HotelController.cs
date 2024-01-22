@@ -44,7 +44,18 @@ namespace HotelAPI.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult<HotelDto> CreateHotel([FromBody] HotelDto hotelDto)
         {
-            if (hotelDto == null)
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (HotelStore.HotelList.FirstOrDefault(h => h.Name.ToLower() == hotelDto.Name.ToLower()) != null)
+            {
+                ModelState.AddModelError("ExistingName", "There is a hotel with the same name!");
+                return BadRequest(ModelState);
+            }
+
+                if (hotelDto == null)
             {
                 return BadRequest(hotelDto);
             }
@@ -65,6 +76,29 @@ namespace HotelAPI.Controllers
             HotelStore.HotelList.Add(hotelDto);
 
             return CreatedAtRoute("GetHotel", new {id = hotelDto.Id}, hotelDto);
+        }
+
+        [HttpDelete("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteHotel(int id)
+        {
+            if(id<=0)
+            {
+                return BadRequest("Incorrect id number");
+            }
+
+            var hotel = HotelStore.HotelList.FirstOrDefault(h => h.Id == id);
+
+            if (hotel == null)
+            {
+                return NotFound();
+            }
+
+            HotelStore.HotelList.Remove(hotel);
+
+            return NoContent();
         }
     }
 }
