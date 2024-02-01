@@ -24,7 +24,5 @@ namespace HotelAPI.Models.Dto
         
         public string ImageURL { get; set; }
         
-
-
     }
 }
