@@ -22,17 +22,17 @@ namespace HotelAPI.Controllers
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<IEnumerable<HotelDto>> GetHotels()
+        public async Task<ActionResult<IEnumerable<HotelDto>>> GetHotels()
         {
             _logger.LogInformation("The hotels were gotten succesfully");
-            return Ok(_db.Hotels.ToList());
+            return Ok(await _db.Hotels.ToListAsync());
         }
 
         [HttpGet("{id:int}", Name = "GetHotel")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<HotelDto> GetHotel(int id)
+        public async Task<ActionResult<HotelDto>> GetHotel(int id)
         {
             if (id <= 0)
             {
@@ -41,7 +41,7 @@ namespace HotelAPI.Controllers
             }
 
             //var hotel = HotelStore.HotelList.FirstOrDefault(x => x.Id == id);
-            var hotel = _db.Hotels.FirstOrDefault(h => h.Id == id);
+            var hotel = await _db.Hotels.FirstOrDefaultAsync(h => h.Id == id);
 
             if (hotel == null)
             {
@@ -55,14 +55,14 @@ namespace HotelAPI.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<HotelDto> CreateHotel([FromBody] HotelCreateDto hotelCreateDto)
+        public async Task<ActionResult<HotelDto>> CreateHotel([FromBody] HotelCreateDto hotelCreateDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (_db.Hotels.FirstOrDefault(h => h.Name.ToLower() == hotelCreateDto.Name.ToLower()) != null)
+            if (await _db.Hotels.FirstOrDefaultAsync(h => h.Name.ToLower() == hotelCreateDto.Name.ToLower()) != null)
             {
                 ModelState.AddModelError("ExistingName", "There is a hotel with the same name!");
                 return BadRequest(ModelState);
@@ -88,8 +88,8 @@ namespace HotelAPI.Controllers
                 CreationDate = DateTime.Now
             };
 
-            _db.Hotels.Add(model);
-            _db.SaveChanges();
+            await _db.Hotels.AddAsync(model);
+            await _db.SaveChangesAsync();
 
             return CreatedAtRoute("GetHotel", new { id = model.Id }, model);
         }
@@ -97,7 +97,7 @@ namespace HotelAPI.Controllers
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateHotel(int id, [FromBody] HotelUpdateDto hotelDto)
+        public async  Task<IActionResult> UpdateHotel(int id, [FromBody] HotelUpdateDto hotelDto)
         {
             if (hotelDto == null || id != hotelDto.Id)
             {
@@ -105,7 +105,7 @@ namespace HotelAPI.Controllers
             }
 
             //var hotel = HotelStore.HotelList.FirstOrDefault(h => h.Id == id);
-            var hotel = _db.Hotels.FirstOrDefault(h => h.Id == id);
+            var hotel = await _db.Hotels.FirstOrDefaultAsync(h => h.Id == id);
 
             if (hotel == null)
             {
@@ -125,7 +125,7 @@ namespace HotelAPI.Controllers
             };
 
             _db.Hotels.Update(model);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             //hotel.Name = hotelDto.Name;
             //hotel.Capacity = hotelDto.Capacity;
@@ -140,7 +140,7 @@ namespace HotelAPI.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeleteHotel(int id)
+        public async Task<IActionResult> DeleteHotel(int id)
         {
             if (id <= 0)
             {
@@ -148,7 +148,7 @@ namespace HotelAPI.Controllers
             }
 
             //var hotel = HotelStore.HotelList.FirstOrDefault(h => h.Id == id);
-            var hotel = _db.Hotels.FirstOrDefault(h => h.Id == id);
+            var hotel = await _db.Hotels.FirstOrDefaultAsync(h => h.Id == id);
 
             if (hotel == null)
             {
@@ -157,7 +157,7 @@ namespace HotelAPI.Controllers
 
             //HotelStore.HotelList.Remove(hotel);
             _db.Hotels.Remove(hotel);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return NoContent();
         }
@@ -166,7 +166,7 @@ namespace HotelAPI.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult UpdatePartialHotel(int id, JsonPatchDocument<HotelUpdateDto> patchDto)
+        public async Task<IActionResult> UpdatePartialHotel(int id, JsonPatchDocument<HotelUpdateDto> patchDto)
         {
             if (patchDto == null || id <= 0)
             {
@@ -174,7 +174,7 @@ namespace HotelAPI.Controllers
             }
 
             //var hotel = HotelStore.HotelList.FirstOrDefault(h => h.Id == id);
-            var hotel = _db.Hotels.AsNoTracking().FirstOrDefault(h => h.Id == id);
+            var hotel = await _db.Hotels.AsNoTracking().FirstOrDefaultAsync(h => h.Id == id);
 
             if (hotel == null) return NotFound();
 
@@ -209,7 +209,7 @@ namespace HotelAPI.Controllers
             };
 
             _db.Hotels.Update(model);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             return NoContent();
         }
