@@ -55,32 +55,22 @@ namespace HotelAPI.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<HotelDto> CreateHotel([FromBody] HotelDto hotelDto)
+        public ActionResult<HotelDto> CreateHotel([FromBody] HotelCreateDto hotelCreateDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (_db.Hotels.FirstOrDefault(h => h.Name.ToLower() == hotelDto.Name.ToLower()) != null)
+            if (_db.Hotels.FirstOrDefault(h => h.Name.ToLower() == hotelCreateDto.Name.ToLower()) != null)
             {
                 ModelState.AddModelError("ExistingName", "There is a hotel with the same name!");
                 return BadRequest(ModelState);
             }
 
-            if (hotelDto == null)
+            if (hotelCreateDto == null)
             {
-                return BadRequest(hotelDto);
-            }
-
-            if (hotelDto.Name == "")
-            {
-                return BadRequest(new { errorMessage = "Name can't be an empty value", hotelDto });
-            }
-
-            if (hotelDto.Id < 0)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                return BadRequest(hotelCreateDto);
             }
 
             //Gets the last Hotel ID, and the adds 1 for the new hotel
@@ -89,25 +79,25 @@ namespace HotelAPI.Controllers
 
             Hotel model = new()
             {
-                Name = hotelDto.Name,
-                City = hotelDto.City,
-                Detail = hotelDto.Detail,
-                Capacity = hotelDto.Capacity,
-                Price = hotelDto.Price,
-                ImageURL = hotelDto.ImageURL,
+                Name = hotelCreateDto.Name,
+                City = hotelCreateDto.City,
+                Detail = hotelCreateDto.Detail,
+                Capacity = hotelCreateDto.Capacity,
+                Price = hotelCreateDto.Price,
+                ImageURL = hotelCreateDto.ImageURL,
                 CreationDate = DateTime.Now
             };
 
             _db.Hotels.Add(model);
             _db.SaveChanges();
 
-            return CreatedAtRoute("GetHotel", new { id = hotelDto.Id }, hotelDto);
+            return CreatedAtRoute("GetHotel", new { id = model.Id }, model);
         }
 
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdateHotel(int id, [FromBody] HotelDto hotelDto)
+        public IActionResult UpdateHotel(int id, [FromBody] HotelUpdateDto hotelDto)
         {
             if (hotelDto == null || id != hotelDto.Id)
             {
@@ -176,7 +166,7 @@ namespace HotelAPI.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult UpdatePartialHotel(int id, JsonPatchDocument<HotelDto> patchDto)
+        public IActionResult UpdatePartialHotel(int id, JsonPatchDocument<HotelUpdateDto> patchDto)
         {
             if (patchDto == null || id <= 0)
             {
@@ -188,13 +178,14 @@ namespace HotelAPI.Controllers
 
             if (hotel == null) return NotFound();
 
-            HotelDto hotelDto = new()
+            HotelUpdateDto hotelDto = new()
             {
                 Id = hotel.Id,
                 Name = hotel.Name,
                 City = hotel.City,
                 Detail = hotel.Detail,
                 Capacity = hotel.Capacity,
+                Price = hotel.Price,
                 ImageURL = hotel.ImageURL,
             };
 
@@ -213,6 +204,7 @@ namespace HotelAPI.Controllers
                 City = hotelDto.City,
                 Detail = hotelDto.Detail,
                 Capacity = hotelDto.Capacity,
+                Price = hotelDto.Price,
                 ImageURL = hotelDto.ImageURL
             };
 
