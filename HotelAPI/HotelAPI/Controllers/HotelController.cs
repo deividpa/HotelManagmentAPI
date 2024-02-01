@@ -1,4 +1,5 @@
-﻿using HotelAPI.Data;
+﻿using AutoMapper;
+using HotelAPI.Data;
 using HotelAPI.Models;
 using HotelAPI.Models.Dto;
 using Microsoft.AspNetCore.Http;
@@ -14,10 +15,12 @@ namespace HotelAPI.Controllers
     {
         private readonly ILogger<HotelController> _logger;
         private readonly ApplicationDbContext _db;
-        public HotelController(ILogger<HotelController> logger, ApplicationDbContext db)
+        private readonly IMapper _mapper;
+        public HotelController(ILogger<HotelController> logger, ApplicationDbContext db, IMapper mapper)
         {
             _logger = logger;
             _db = db;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -25,7 +28,9 @@ namespace HotelAPI.Controllers
         public async Task<ActionResult<IEnumerable<HotelDto>>> GetHotels()
         {
             _logger.LogInformation("The hotels were gotten succesfully");
-            return Ok(await _db.Hotels.ToListAsync());
+
+            IEnumerable<Hotel> hotelList = await _db.Hotels.ToListAsync();
+            return Ok(_mapper.Map<IEnumerable<HotelDto>>(hotelList));
         }
 
         [HttpGet("{id:int}", Name = "GetHotel")]
@@ -48,7 +53,7 @@ namespace HotelAPI.Controllers
                 return NotFound("Hotel not found");
             }
 
-            return Ok(hotel);
+            return Ok(_mapper.Map<HotelDto>(hotel));
         }
 
         [HttpPost]
@@ -77,16 +82,7 @@ namespace HotelAPI.Controllers
             //hotelDto.Id = HotelStore.HotelList.OrderByDescending(x => x.Id).FirstOrDefault().Id + 1;
             //HotelStore.HotelList.Add(hotelDto);
 
-            Hotel model = new()
-            {
-                Name = hotelCreateDto.Name,
-                City = hotelCreateDto.City,
-                Detail = hotelCreateDto.Detail,
-                Capacity = hotelCreateDto.Capacity,
-                Price = hotelCreateDto.Price,
-                ImageURL = hotelCreateDto.ImageURL,
-                CreationDate = DateTime.Now
-            };
+            Hotel model = _mapper.Map<Hotel>(hotelCreateDto);
 
             await _db.Hotels.AddAsync(model);
             await _db.SaveChangesAsync();
@@ -97,9 +93,9 @@ namespace HotelAPI.Controllers
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async  Task<IActionResult> UpdateHotel(int id, [FromBody] HotelUpdateDto hotelDto)
+        public async  Task<IActionResult> UpdateHotel(int id, [FromBody] HotelUpdateDto hotelUpdateDto)
         {
-            if (hotelDto == null || id != hotelDto.Id)
+            if (hotelUpdateDto == null || id != hotelUpdateDto.Id)
             {
                 return BadRequest();
             }
@@ -112,24 +108,10 @@ namespace HotelAPI.Controllers
                 return NotFound();
             }
 
-            Hotel model = new()
-            {
-                Id = hotelDto.Id,
-                Name = hotelDto.Name,
-                City = hotelDto.City,
-                Detail = hotelDto.Detail,
-                Capacity = hotelDto.Capacity,
-                Price = hotelDto.Price,
-                ImageURL = hotelDto.ImageURL,
-                UpdateDate = DateTime.Now
-            };
+            Hotel model = _mapper.Map<Hotel>(hotelUpdateDto);
 
             _db.Hotels.Update(model);
             await _db.SaveChangesAsync();
-
-            //hotel.Name = hotelDto.Name;
-            //hotel.Capacity = hotelDto.Capacity;
-            //hotel.City = hotelDto.City;
 
             return NoContent();
         }
@@ -178,7 +160,9 @@ namespace HotelAPI.Controllers
 
             if (hotel == null) return NotFound();
 
-            HotelUpdateDto hotelDto = new()
+            HotelUpdateDto hotelUpdateDto = _mapper.Map<HotelUpdateDto>(hotel);
+
+            /*HotelUpdateDto hotelDto = new()
             {
                 Id = hotel.Id,
                 Name = hotel.Name,
@@ -187,17 +171,19 @@ namespace HotelAPI.Controllers
                 Capacity = hotel.Capacity,
                 Price = hotel.Price,
                 ImageURL = hotel.ImageURL,
-            };
+            };*/
 
 
-            patchDto.ApplyTo(hotelDto, ModelState);
+            patchDto.ApplyTo(hotelUpdateDto, ModelState);
 
             if(!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            Hotel model = new()
+            Hotel model = _mapper.Map<Hotel>(hotelUpdateDto);
+
+            /*Hotel model = new()
             {
                 Id=hotelDto.Id,
                 Name=hotelDto.Name,
@@ -206,7 +192,7 @@ namespace HotelAPI.Controllers
                 Capacity = hotelDto.Capacity,
                 Price = hotelDto.Price,
                 ImageURL = hotelDto.ImageURL
-            };
+            };*/
 
             _db.Hotels.Update(model);
             await _db.SaveChangesAsync();
